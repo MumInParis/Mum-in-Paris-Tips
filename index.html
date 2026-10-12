@@ -357,6 +357,15 @@ input,select,textarea{font-size:16px}
 .rail.compact .badge{font-size:10px;padding:3px 8px;left:8px;bottom:8px}
 .rail.compact .fav{transform:scale(.85);transform-origin:top right}
 .rail.compact .eph-c{top:7px!important;left:7px!important;font-size:8px!important;padding:2px 5px!important}
+.soon-rail{gap:10px}
+.rail.soon-rail .card{flex:0 0 70%;max-width:260px;display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px}
+.rail.soon-rail .card .pic{flex:0 0 58px;width:58px;height:58px;border-radius:8px;overflow:hidden}
+.rail.soon-rail .card .pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.rail.soon-rail .card .body{padding:0;min-width:0}
+.rail.soon-rail .card h3{font-size:14.5px;line-height:1.2;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rail.soon-rail .when{display:inline-flex;align-items:center;gap:4px;margin:0 0 4px;padding:2px 7px;border-radius:999px;background:#E4EEEA;color:#2F5D50;font-size:10.5px;font-weight:600;white-space:nowrap}
+.rail.soon-rail .when svg{width:11px;height:11px}
+#soon-sec{margin-top:22px}
 .coffee{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);text-align:center}
 .coffee p{font-family:var(--sans,inherit);font-size:14px;color:var(--ink-soft);margin:0 0 12px;line-height:1.5}
 .insta-wrap{display:flex;justify-content:flex-end;margin:12px 0 4px}
@@ -491,6 +500,13 @@ input,select,textarea{font-size:16px}
     <h2 id="picks-t">FOCUS</h2>
   </div>
   <div class="picks" id="picks"></div>
+</section>
+
+<section aria-labelledby="soon-t" id="soon-sec" hidden>
+  <div class="sec-head">
+    <h2 id="soon-t">À venir</h2>
+  </div>
+  <div class="rail compact soon-rail" id="soon-rail"></div>
 </section>
 
 <aside class="note">
@@ -775,7 +791,7 @@ function renderHome() {
   if (STATE === 'loading' && !SORTIES.length) { rail.innerHTML = `<div class="empty-box" style="flex:1"><p>Chargement des sorties…</p></div>`; return; }
   if (STATE === 'error' && !SORTIES.length) { rail.innerHTML = `<div class="empty-box" style="flex:1"><p>Les sorties n’ont pas pu être chargées. Vérifiez votre connexion puis rechargez la page.</p></div>`; return; }
   const feat = SORTIES.filter(s => s.featured && !s.pause);
-  const base = feat.length ? feat : SORTIES.filter(s => !s.pause).slice(0, 6);
+  const base = (feat.length ? feat : SORTIES.filter(s => !s.pause).slice(0, 6)).filter(s => !s.upcoming);
   // Ordre du carrousel : d'abord les sorties à durée limitée (celles qui finissent le plus tôt en premier,
   // activités et expos avant les spectacles), puis les événements à venir, puis le reste
   const isShow = x => /^(spectacle|theatre)$/.test(norm(x.type));
@@ -789,6 +805,19 @@ function renderHome() {
       <div class="body"><h3>${esc(s.t)}</h3><div class="facts">${factsHtml(s)}</div></div>
     </article>`).join('') : `<div class="empty-box" style="flex:1"><p>Les premières sorties arrivent très vite.</p></div>`;
   railDots();
+  renderSoon();
+}
+/* Section « À venir » : tous les événements pas encore commencés, du plus proche au plus lointain */
+function renderSoon() {
+  const sec = document.getElementById('soon-sec'), box = document.getElementById('soon-rail');
+  if (!sec || !box) return;
+  const list = SORTIES.filter(s => s.upcoming && !s.pause).sort((a, b) => a.from - b.from);
+  sec.hidden = !list.length;
+  box.innerHTML = list.map(s => `
+    <article class="card" tabindex="0" role="link" aria-label="Voir la fiche ${esc(s.t)}" data-open="${esc(s.id)}">
+      <div class="pic">${visual(s)}</div>
+      <div class="body"><span class="when">${ICON.cal}${esc(rangeTxt(s, true))}</span><h3>${esc(s.t)}</h3></div>
+    </article>`).join('');
 }
 /* Carrousel « En ce moment » : petits points + défilement doux automatique (s'arrête dès qu'on touche) */
 let railTouched = false;

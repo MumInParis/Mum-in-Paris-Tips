@@ -772,7 +772,7 @@ const PICKS = [
   { t: 'Spectacles et théâtre', d: 'Sur scène, en famille', art: 'stage', q: 'type:Spectacle' },
   { t: 'Sorties gratuites', d: 'Culture, nature, loisirs', art: 'free', q: 'free' },
   { t: 'Où manger en famille', d: 'Restaurants et goûters', art: 'food', q: 'type:Manger' },
-  { t: 'Fêter un anniversaire', d: 'Les lieux qui organisent tout', art: 'cake', q: 'anniv' }
+  { t: 'Fêter un anniversaire', d: 'Les lieux qui accueillent vos aprems endiablées', art: 'cake', q: 'anniv' }
 ];
 function renderPicks() {
   document.getElementById('picks').innerHTML = PICKS.map(p => {
@@ -862,12 +862,17 @@ function distKm(a, b) {
 }
 function sortList(list) {
   let r = sortList0(list);
-  // Liste « Durée limitée » : ordre chronologique de début.
-  // D'abord ce qui a déjà commencé (celles qui finissent le plus tôt en premier), puis les événements à venir par date de début.
-  if (F.duree.includes('temp') && location.hash === '#resultats' && SORT === 'new') {
-    const start = x => x.upcoming ? +x.from : -Infinity, end = x => x.until ? +x.until : Infinity;
-    r.sort((a, b) => start(a) - start(b) || end(a) - end(b));
+  // Listes « Durée limitée » et « Spectacles » : ordre chronologique.
+  // 1) ce qui se joue déjà et finit bientôt (date de fin la plus proche d'abord)
+  // 2) les événements à venir (date de début la plus proche d'abord)
+  // 3) le reste (à l'affiche toute l'année), dans l'ordre habituel
+  const onRes = location.hash === '#resultats' && SORT === 'new';
+  if (onRes && (F.duree.includes('temp') || F.type.includes('Spectacle'))) {
+    const grp = x => x.upcoming ? 1 : x.until ? 0 : 2;
+    r.sort((a, b) => grp(a) - grp(b) || (grp(a) === 0 ? a.until - b.until : grp(a) === 1 ? a.from - b.from : 0));
   }
+  // Liste « Gratuit » : les sorties testées d'abord, les « Pas encore fait » ensuite
+  if (onRes && F.budget.includes('free')) r.sort((a, b) => !!a.aVoir - !!b.aVoir);
   return r.filter(s => !s.pause).concat(r.filter(s => s.pause));
 }
 function sortList0(list) {

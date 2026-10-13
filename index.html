@@ -918,7 +918,7 @@ function askPosition() {
 
 function renderAll() {
   return `<div class="v-head"><button class="icon-btn" data-go="" aria-label="Retour à l’accueil">${ICON.back}</button><h1>${SORTIES.length} sortie${SORTIES.length > 1 ? 's' : ''}</h1></div>
-  <p class="v-sub">Toutes les sorties testées et approuvées.</p>
+  <p class="v-sub">Toutes les sorties testées, approuvées ou repérées.</p>
   ${sortBar()}
   ${rowCards(SORTIES)}`;
 }

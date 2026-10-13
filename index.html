@@ -862,10 +862,11 @@ function distKm(a, b) {
 }
 function sortList(list) {
   let r = sortList0(list);
-  // Liste « Durée limitée » : les spectacles passent après les expos, ateliers…
-  if (F.duree.includes('temp') && location.hash === '#resultats') {
-    const isShow = x => /^(spectacle|theatre)$/.test(norm(x.type));
-    r = r.filter(x => !isShow(x)).concat(r.filter(isShow));
+  // Liste « Durée limitée » : ordre chronologique de début.
+  // D'abord ce qui a déjà commencé (celles qui finissent le plus tôt en premier), puis les événements à venir par date de début.
+  if (F.duree.includes('temp') && location.hash === '#resultats' && SORT === 'new') {
+    const start = x => x.upcoming ? +x.from : -Infinity, end = x => x.until ? +x.until : Infinity;
+    r.sort((a, b) => start(a) - start(b) || end(a) - end(b));
   }
   return r.filter(s => !s.pause).concat(r.filter(s => s.pause));
 }

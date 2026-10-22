@@ -366,6 +366,27 @@ input,select,textarea{font-size:16px}
 .rail.soon-rail .when{display:inline-flex;align-items:center;gap:4px;margin:0 0 4px;padding:2px 7px;border-radius:999px;background:#E4EEEA;color:#2F5D50;font-size:10.5px;font-weight:600;white-space:nowrap}
 .rail.soon-rail .when svg{width:11px;height:11px}
 #soon-sec{margin-top:22px}
+html.is-app [data-install]{display:none!important}
+.inst{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.inst[hidden]{display:none}
+.inst-bg{position:absolute;inset:0;background:rgba(20,20,20,.45)}
+.inst-card{position:relative;width:100%;max-width:480px;background:var(--bg);border-radius:22px 22px 0 0;padding:22px 20px calc(24px + env(safe-area-inset-bottom,0px));text-align:center;max-height:90vh;overflow:auto;animation:instUp .25s ease-out}
+@keyframes instUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.inst-x{position:absolute;top:12px;right:12px;width:36px;height:36px;border:0;border-radius:50%;background:var(--surface);font-size:15px;cursor:pointer;color:var(--ink)}
+.inst-ic{width:60px;height:60px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.12);margin:4px auto 10px;display:block}
+.inst-card h2{font-family:var(--serif);font-weight:500;font-size:22px;line-height:1.2;margin:0 0 4px}
+.inst-sub{color:var(--ink-soft);font-size:14px;margin:0 0 16px}
+.inst-tabs{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;margin-bottom:16px}
+.inst-tabs button{border:0;background:none;padding:7px 18px;border-radius:999px;font:inherit;font-size:14px;font-weight:600;color:var(--ink-soft);cursor:pointer}
+.inst-tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.inst-steps{list-style:none;padding:0;margin:0;text-align:left;counter-reset:st}
+.inst-steps li{counter-increment:st;display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--line);font-size:15px;line-height:1.4}
+.inst-steps li:first-child{border-top:0}
+.inst-steps li::before{content:counter(st);flex:none;width:26px;height:26px;border-radius:50%;background:var(--pink);color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center;margin-top:-1px}
+.inst-card .k svg,.inst-steps svg{width:17px;height:17px;vertical-align:-3px;margin:0 2px;color:var(--ink)}
+.inst-card .k{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:6px;background:var(--surface);border:1px solid var(--line);font-weight:600;font-size:14px;white-space:nowrap}
+.inst-warn{background:#F5ECDC;color:#6B4E14;border-radius:12px;padding:11px 14px;font-size:14px;line-height:1.4;text-align:left;margin:0 0 12px}
+.inst-go{margin-top:14px;width:100%}
 .coffee{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);text-align:center}
 .coffee p{font-family:var(--sans,inherit);font-size:14px;color:var(--ink-soft);margin:0 0 12px;line-height:1.5}
 .insta-wrap{display:flex;justify-content:flex-end;margin:12px 0 4px}
@@ -516,6 +537,7 @@ input,select,textarea{font-size:16px}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r=".6" fill="currentColor"/></svg>
     Suivre @mum_inparis
   </a>
+  <button class="link-btn install-btn" data-install style="margin-top:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 9v6M9 12h6"/></svg>Ajouter à mon écran d’accueil</button>
 </aside>
 </main>
 <section id="view"></section>
@@ -530,6 +552,20 @@ input,select,textarea{font-size:16px}
   </ul>
 </nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="inst" id="inst" hidden>
+  <div class="inst-bg" data-inst-close></div>
+  <div class="inst-card" role="dialog" aria-modal="true" aria-labelledby="inst-t">
+    <button class="inst-x" data-inst-close aria-label="Fermer">✕</button>
+    <img src="apple-touch-icon.png" alt="" class="inst-ic">
+    <h2 id="inst-t">Mum in Paris sur votre écran d’accueil</h2>
+    <p class="inst-sub">Retrouvez le guide en un geste, comme une appli.</p>
+    <div class="inst-tabs" role="tablist">
+      <button role="tab" data-inst-os="ios">iPhone</button>
+      <button role="tab" data-inst-os="android">Android</button>
+    </div>
+    <div id="inst-body"></div>
+  </div>
+</div>
 <script>
 const ICON = {
   age:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="7.5"/><path d="M9.3 12h.01M14.7 12h.01M9.5 15.5q2.5 2 5 0"/></svg>',
@@ -539,6 +575,7 @@ const ICON = {
   clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
   metro:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8 16V8.5l4 5 4-5V16"/></svg>',
   bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 17h6M10 20.5h4M12 3.5a6 6 0 0 0-3.5 10.9c.5.4.5 1 .5 1.6h6c0-.6 0-1.2.5-1.6A6 6 0 0 0 12 3.5z"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 9v6M9 12h6"/></svg>',
   share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5M8 7.5l4-4 4 4M6 11H5v9.5h14V11h-1"/></svg>',
   back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
   ticket:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3.5 8.5V6h17v2.5a2.5 2.5 0 0 0 0 5V16h-17v-2.5a2.5 2.5 0 0 0 0-5z"/><path d="M14 6v10" stroke-dasharray="2 2"/></svg>',
@@ -1258,6 +1295,7 @@ function renderAbout() {
     ${ABOUT.map(t => `<p>${esc(t)}</p>`).join('')}
     <a class="btn" href="https://www.instagram.com/mum_inparis/" target="_blank" rel="noopener">${ICON.insta}Suivre @mum_inparis</a>
     <button class="link-btn" data-share style="margin-top:14px">${ICON.share}Partager le site</button>
+    <button class="link-btn install-btn" data-install>${ICON.phone}Ajouter à mon écran d’accueil</button>
     ${COFFEE_URL ? `<div class="coffee"><p>Ce guide est gratuit et je l'enrichis sur mon temps libre. S'il vous rend service, vous pouvez me soutenir 🤍</p><a class="btn soft" href="${esc(COFFEE_URL)}" target="_blank" rel="noopener">☕ Offrez-moi un café</a></div>` : ''}
     <p class="made">Parce que Paris, c’est à visiter en famille !</p>
   </div>`;
@@ -1397,10 +1435,51 @@ async function share() {
 }
 
 const toastEl = document.getElementById('toast');
+/* ---------- Ajouter à l'écran d'accueil ---------- */
+const UA = navigator.userAgent || '';
+const IS_IOS = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IN_APP = /Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|Snapchat|LinkedInApp/i.test(UA);
+const IS_APP = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+if (IS_APP) document.documentElement.classList.add('is-app');
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
+window.addEventListener('appinstalled', () => { installEvt = null; closeInstall(); toast('Mum in Paris est sur votre écran d’accueil 🤍'); });
+const SHARE_I = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5M8 7.5l4-4 4 4M6 11H5v9.5h14V11h-1"/></svg>';
+const PLUS_I = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="3.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>';
+const DOTS_V = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5.5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="18.5" r="1.7"/></svg>';
+const DOTS_H = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/></svg>';
+function installBody(os) {
+  const warn = IN_APP ? `<p class="inst-warn"><strong>Vous êtes dans Instagram.</strong> Ouvrez d’abord le site dans ${os === 'ios' ? 'Safari' : 'Chrome'} : touchez <span class="k">${DOTS_H}</span> en haut à droite, puis « Ouvrir dans le navigateur ».</p>` : '';
+  if (os === 'ios') return warn + `<ol class="inst-steps">
+    <li><span>Dans Safari, touchez <span class="k">${SHARE_I}Partager</span> en bas de l’écran (s’il n’apparaît pas, touchez d’abord <span class="k">${DOTS_H}</span>).</span></li>
+    <li><span>Faites défiler et choisissez <span class="k">${PLUS_I}Sur l’écran d’accueil</span>.</span></li>
+    <li><span>Touchez <span class="k">Ajouter</span> en haut à droite. C’est fait !</span></li>
+  </ol>`;
+  return warn + (installEvt ? `<button class="btn inst-go" data-inst-now>${ICON.phone}Installer maintenant</button><p class="inst-sub" style="margin:12px 0 4px">ou à la main :</p>` : '') + `<ol class="inst-steps">
+    <li><span>Dans Chrome, touchez <span class="k">${DOTS_V}</span> en haut à droite.</span></li>
+    <li><span>Choisissez <span class="k">Ajouter à l’écran d’accueil</span> (ou « Installer l’application »).</span></li>
+    <li><span>Confirmez avec <span class="k">Ajouter</span>. C’est fait !</span></li>
+  </ol>`;
+}
+function installTab(os) {
+  document.querySelectorAll('[data-inst-os]').forEach(b => b.setAttribute('aria-selected', b.dataset.instOs === os));
+  document.getElementById('inst-body').innerHTML = installBody(os);
+}
+function openInstall() {
+  installTab(IS_IOS ? 'ios' : /Android/i.test(UA) ? 'android' : 'ios');
+  document.getElementById('inst').hidden = false;
+}
+function closeInstall() { const el = document.getElementById('inst'); if (el) el.hidden = true; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeInstall(); });
 let tt;
 function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => toastEl.classList.remove('on'), 2400); }
 
 document.addEventListener('click', e => {
+  if (e.target.closest('[data-install]')) { openInstall(); return; }
+  if (e.target.closest('[data-inst-close]')) { closeInstall(); return; }
+  const ot = e.target.closest('[data-inst-os]');
+  if (ot) { installTab(ot.dataset.instOs); return; }
+  if (e.target.closest('[data-inst-now]') && installEvt) { installEvt.prompt(); installEvt.userChoice.finally(() => { installEvt = null; closeInstall(); }); return; }
   const fav = e.target.closest('.fav');
   if (fav) {
     e.stopPropagation();

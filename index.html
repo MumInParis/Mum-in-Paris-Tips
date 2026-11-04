@@ -340,6 +340,7 @@ input,select,textarea{font-size:16px}
 .vac-meta{font-size:12.5px;color:var(--ink-soft)}
 .vac-link{flex:none;border:1px solid var(--ink);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--ink);text-decoration:none;white-space:nowrap}
 .vac-note{font-size:12.5px;color:var(--ink-soft);text-align:center;margin:16px 18px 0}
+.q-theme .disc{border-color:var(--th)!important;color:var(--th)!important;background:var(--th-bg)!important}
 .q-vac .disc{border-color:#2C6E8F!important;color:#2C6E8F!important;background:#E3EEF3!important}
 .quick.quick-6{display:flex;overflow-x:auto;gap:2px;padding:0 6px;scrollbar-width:none;scroll-snap-type:x proximity}
 .quick.quick-6::-webkit-scrollbar{display:none}
@@ -368,7 +369,7 @@ input,select,textarea{font-size:16px}
 #soon-sec{margin-top:22px}
 html.is-app [data-install]{display:none!important}
 .inst{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center}
-.inst[hidden]{display:none}
+[hidden]{display:none!important}
 .inst-bg{position:absolute;inset:0;background:rgba(20,20,20,.45)}
 .inst-card{position:relative;width:100%;max-width:480px;background:var(--bg);border-radius:22px 22px 0 0;padding:22px 20px calc(24px + env(safe-area-inset-bottom,0px));text-align:center;max-height:90vh;overflow:auto;animation:instUp .25s ease-out}
 @keyframes instUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
@@ -507,6 +508,7 @@ html.is-app [data-install]{display:none!important}
   <h2 id="quick-t" class="sr">Accès rapides</h2>
   <div class="quick" id="quick">
     <button class="q q-vac" data-go="#vacances" hidden><span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 7V5.2a1.2 1.2 0 0 1 1.2-1.2h2.6a1.2 1.2 0 0 1 1.2 1.2V7"/><rect x="3.5" y="7" width="17" height="13.5" rx="2"/><path d="M3.5 13.5h17"/><path d="M8 13.5v3.5M16 13.5v3.5"/><rect x="7" y="16" width="2" height="2" rx=".4"/><rect x="15" y="16" width="2" height="2" rx=".4"/></svg></span>Vacances scolaires</button>
+    <button class="q q-theme" data-quick="" hidden><span class="disc"></span><span class="q-l"></span></button>
     <button class="q q-pink" data-quick="free"><span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.4"/></svg></span>Gratuit</button>
     <button class="q q-temp" data-quick="temp"><span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><rect x="3.5" y="5" width="13" height="13" rx="2"/><path d="M3.5 9.5h13M7.5 3v4M12.5 3v4"/><circle cx="17" cy="16.5" r="4.5" fill="var(--temp-bg)"/><path d="M17 14.3v2.4l1.6 1"/></svg></span>Durée limitée</button>
     <button class="q q-mint" data-quick="type:Manger"><span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M7 3v6.5a2 2 0 0 0 4 0V3M9 3v18M17 21V3c-2.2 1.3-3.2 4-3.2 7.5H17"/></svg></span>Où manger</button>
@@ -666,7 +668,11 @@ const fixText = v => /https?:|www\.|^-?\d+[.,]\d+\s*[;,]/.test(v) ? v : ACCENTS.
 function rowsToObjects(rows) {
   if (!rows.length) return [];
   const keys = rows[0].map(HEAD);
-  return rows.slice(1).map(r => { const o = {}; keys.forEach((k, i) => { const v = fixText(clean(r[i])); if (k && (!o[k] || v)) o[k] = o[k] && v ? o[k] : (o[k] || v); }); return o; }).filter(o => o.nom);
+  // Colonne nommée « Thème … » (ex. « Thème Noël ») : son titre devient le nom de la bulle, « oui » dans les lignes
+  const thIdx = keys.findIndex(k => /^themes?_./.test(k));
+  const thLabel = thIdx >= 0 ? fixText(clean(rows[0][thIdx])).trim() : '';
+  return rows.slice(1).map(r => { const o = {};
+    if (thIdx >= 0) { const v = norm(clean(r[thIdx])); if (v && !/^(false|faux|non|n|0)$/.test(v)) o.theme_named = thLabel; } keys.forEach((k, i) => { const v = fixText(clean(r[i])); if (k && (!o[k] || v)) o[k] = o[k] && v ? o[k] : (o[k] || v); }); return o; }).filter(o => o.nom);
 }
 
 function parseGeo(v) {
@@ -701,6 +707,7 @@ function toSortie(o, i, used) {
     featured: /^(oui|o|x|yes|y|1|vrai|true)$/.test(norm(o.en_ce_moment)),
     age: o.age || '', price: o.prix || '', where: o.arrondissement || '', place: o.lieu || '',
     duration: o.duree || '', metro: o.metro || '', url: fixUrl(o.lien_partenaire) || fixUrl(o.lien_de_reservation || o.lien_reservation || (fixUrl(o.reservation) ? o.reservation : '') || o.lien),
+    themeRaw: String(o.theme_named || o.theme || o.themes || o.theme_saisonnier || o.bulle || '').trim(),
     insta: (u => /instagram\.com/i.test(u) ? u : '')(fixUrl(o.lien_instagram || o.instagram || o.post_instagram || o.lien_insta || o.post_insta || '')),
     partner: !!String(o.lien_partenaire || '').trim() && !/^(non|n|no|0|faux|false)$/.test(norm(o.lien_partenaire)),
     why: o.pourquoi_jaime || '', tip: o.mon_conseil || '', geo: (g => g && g[0] > 48.1 && g[0] < 49.3 && g[1] > 1.4 && g[1] < 3.6 ? g : null)(parseGeo(o.coordonnees || o.coordonnees_gps || '')), photos: String(o.photo || o.photos || '').split(/[\s,;]+/).map(photoUrl).filter(Boolean), art: o._art || '', order: i
@@ -843,6 +850,7 @@ function renderHome() {
     </article>`).join('') : `<div class="empty-box" style="flex:1"><p>Les premières sorties arrivent très vite.</p></div>`;
   railDots();
   renderSoon();
+  renderThemeBubble();
 }
 /* Section « À venir » : tous les événements pas encore commencés, du plus proche au plus lointain */
 function renderSoon() {
@@ -1013,8 +1021,8 @@ const GROUPS = [
   { key: 'ou', title: 'Où ?', icon: ICON.pin, opts: [['1-5', 'Paris 1–5'], ['6-10', 'Paris 6–10'], ['11-20', 'Paris 11–20'], ['banlieue', 'Proche banlieue'], ['metro', 'Accessible en métro']] }
 ];
 const LABELS = { rain: 'Quand il pleut', '6-8': '6–8 ans', 'Théâtre': 'Théâtre', 'Theatre': 'Théâtre' };
-let F = { q: '', age: [], budget: [], type: [], duree: [], occ: [], resa: [], ou: [], rain: false, soon: false };
-const resetF = () => { F = { q: '', age: [], budget: [], type: [], duree: [], occ: [], resa: [], ou: [], rain: false, soon: false }; };
+let F = { q: '', age: [], budget: [], type: [], duree: [], occ: [], resa: [], ou: [], rain: false, soon: false, theme: '' };
+const resetF = () => { F = { q: '', age: [], budget: [], type: [], duree: [], occ: [], resa: [], ou: [], rain: false, soon: false, theme: '' }; };
 
 function ageRange(s) {
   const t = norm(s.age).replace(/(\d+)\s*mois/g, m => String(Math.floor(parseInt(m, 10) / 12)) + ' ans');
@@ -1074,6 +1082,7 @@ function matches(s) {
   if (F.resa.includes('last') && !s.lastDays) return false;
   if (F.rain && ['exterieur', 'nature'].includes(norm(s.type))) return false;
   if (F.soon && !s.soon) return false;
+  if (F.theme && !hasTheme(s, F.theme)) return false;
   return true;
 }
 const results = () => SORTIES.filter(matches);
@@ -1113,6 +1122,7 @@ function renderResults() {
   }));
   if (F.rain) tags.push(['rain', '', LABELS.rain]);
   if (F.soon) tags.push(['soon', '', 'Dernière chance']);
+  if (F.theme && THEME_NOW) tags.push(['theme', '', THEME_NOW.label]);
   return `<div class="v-head"><button class="icon-btn" data-back aria-label="Retour">${ICON.back}</button><h1>${list.length} sortie${list.length > 1 ? 's' : ''} trouvée${list.length > 1 ? 's' : ''}</h1></div>
   ${tags.length ? `<div class="active-filters">${tags.map(([k, v, l]) => `<button class="chip" aria-pressed="true" data-rm="${k}" data-v="${esc(v)}" aria-label="Retirer le filtre ${esc(l)}">${esc(l)} ✕</button>`).join('')}</div>` : ''}
   ${list.length ? sortBar() + rowCards(list)
@@ -1131,6 +1141,7 @@ function quick(q) {
   else if (q === 'rain') F.rain = true;
   else if (q === 'metro') F.ou = ['metro'];
   else if (q === 'soon') F.soon = true;
+  else if (q.startsWith('theme:')) F.theme = q.slice(6);
   else if (q === 'temp') F.duree = ['temp'];
   else if (q.startsWith('age:')) F.age = [q.slice(4)];
   else if (q === 'type:Spectacle') F.type = ['Spectacle', 'Théâtre', 'Theatre'];
@@ -1325,7 +1336,59 @@ async function loadVacances() {
   } catch (e) {}
 }
 function vacTitle() { const p = VAC.find(v => v.period); return p ? p.period : 'Spécial vacances'; }
+/* ---------- Bulle saisonnière (colonne « Thème » de la feuille) ----------
+   La bulle apparaît toute seule pendant la saison, si au moins une sortie porte ce thème. */
+function easter(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
+    g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4,
+    l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), mo = Math.floor((h + l - 7 * m + 114) / 31);
+  return new Date(y, mo - 1, ((h + l - 7 * m + 114) % 31) + 1);
+}
+const THEMES = {
+  halloween: { label: 'Halloween', re: /hallo/, color: '#B85A12', bg: '#F8E6D6',
+    on: d => (d.getMonth() === 9) || (d.getMonth() === 10 && d.getDate() <= 2),
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5c-1.2-.9-3.2-1.2-4.9-.4C4.6 8.2 3.5 11 3.8 14c.4 3.6 3 6 6.2 5.6.8.4 1.3.4 2 .4s1.2 0 2-.4c3.2.4 5.8-2 6.2-5.6.3-3-.8-5.8-3.3-6.9-1.7-.8-3.7-.5-4.9.4z"/><path d="M12 7.5c.1-1.6.6-3 1.8-4"/><path d="M8.5 12l1.5 1.2M15.5 12L14 13.2M9 16.2c1.9 1 4.1 1 6 0"/></svg>' },
+  noel: { label: 'Noël', re: /noel|christmas/, color: '#1E6B43', bg: '#E1EFE6',
+    on: d => d.getMonth() === 10 || d.getMonth() === 11 || (d.getMonth() === 0 && d.getDate() <= 6),
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1 1.9 2.1.3-1.5 1.5.4 2.1L12 7.8l-1.9 1 .4-2.1L9 5.2l2.1-.3z"/><path d="M12 9.5l-4 4.5h2.2l-3.7 4.5h11l-3.7-4.5H16z"/><path d="M12 18.5V21"/></svg>' },
+  paques: { label: 'Pâques', re: /paques|easter/, color: '#6E4FA0', bg: '#EDE6F5',
+    on: d => { const e = easter(d.getFullYear()), t = (d - e) / 864e5; return t >= -35 && t <= 14; },
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3.6 0 6.5 5.2 6.5 10.2 0 4.4-2.9 7.8-6.5 7.8s-6.5-3.4-6.5-7.8C5.5 8.2 8.4 3 12 3z"/><path d="M5.8 12.2l2.2 1.6 2-1.6 2 1.6 2-1.6 2 1.6 2.2-1.6"/></svg>' }
+};
+// Colonne « Thème » : le texte écrit dans la case devient le nom de la bulle (ex. « Magie de Noël »).
+// Une case simplement cochée (ou « oui ») rejoint la bulle en cours ; seule, elle prend le nom de la saison.
+const TICK = /^(true|vrai|oui|o|x|yes|y|1)$/;
+const themeKey = s => { const k = norm(s.themeRaw); return !k || /^(false|faux|non|n|0)$/.test(k) ? '' : TICK.test(k) ? '__tick' : k; };
+let THEME_NOW = null;
+function computeTheme() {
+  const live = SORTIES.filter(s => !s.pause && themeKey(s));
+  if (!live.length) return null;
+  const count = {};
+  live.forEach(s => { const k = themeKey(s); if (k !== '__tick') count[k] = (count[k] || 0) + 1; });
+  const keys = Object.keys(count).sort((a, b) => count[b] - count[a]);
+  const d = new Date(), season = Object.keys(THEMES).find(k => THEMES[k].on(d));
+  let key, label;
+  if (keys.length) { key = keys[0]; label = live.find(s => themeKey(s) === key).themeRaw; }
+  else { key = '__tick'; label = season ? 'Thème ' + THEMES[season].label : 'Notre sélection'; }
+  const nk = norm(label);
+  const look = THEMES[Object.keys(THEMES).find(k => THEMES[k].re.test(nk)) || (key === '__tick' ? season : '')] || THEME_DEFAULT;
+  return { key, label, look };
+}
+const THEME_DEFAULT = { color: '#9A3B6E', bg: '#F5E4EE',
+  icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.5l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.5l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>' };
+const hasTheme = (s, key) => { const k = themeKey(s); return !!k && (k === key || k === '__tick'); };
+function renderThemeBubble() {
+  const b = document.querySelector('.q-theme'); if (!b) return;
+  THEME_NOW = computeTheme();
+  b.hidden = !THEME_NOW; if (!THEME_NOW) return;
+  const t = THEME_NOW;
+  b.dataset.quick = 'theme:' + t.key;
+  b.style.setProperty('--th', t.look.color); b.style.setProperty('--th-bg', t.look.bg);
+  b.querySelector('.disc').innerHTML = t.look.icon;
+  b.querySelector('.q-l').textContent = t.label;
+}
 function renderVacBanner() {
+  renderThemeBubble();
   // Pendant les vacances : seule la bulle « Vacances scolaires » apparaît sur l'accueil
   const qb = document.querySelector('.q-vac'), qw = document.getElementById('quick');
   if (qb) qb.hidden = !VAC.length;
@@ -1521,7 +1584,7 @@ document.addEventListener('click', e => {
   const rm = e.target.closest('[data-rm]');
   if (rm) {
     const k = rm.dataset.rm;
-    if (k === 'q') F.q = ''; else if (k === 'rain') F.rain = false; else if (k === 'soon') F.soon = false; else F[k] = F[k].filter(x => x !== rm.dataset.v);
+    if (k === 'q') F.q = ''; else if (k === 'rain') F.rain = false; else if (k === 'soon') F.soon = false; else if (k === 'theme') F.theme = ''; else F[k] = F[k].filter(x => x !== rm.dataset.v);
     route(); return;
   }
   if (e.target.closest('[data-clear]')) { resetF(); route(); return; }

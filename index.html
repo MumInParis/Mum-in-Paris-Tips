@@ -292,6 +292,11 @@ h2{font-weight:500;letter-spacing:-.5px}
 .leg svg{width:18px;height:18px}
 .leg[aria-pressed="false"]{opacity:.4;text-decoration:line-through}
 .bday-note{background:#F6E3E5}
+.th-note{background:var(--th-bg);border-left:3px solid var(--th)}
+.th-note strong{display:flex;align-items:center;gap:7px;color:var(--th)}
+.th-note strong svg{width:20px;height:20px;flex:none}
+.ln-th{color:var(--th)!important;font-weight:600}
+.ln-th svg{color:var(--th)!important}
 .b-last{background:#C8102E;color:#fff}
 .q{font-size:12px;padding:6px 0}
 .q .disc svg{width:25px;height:25px}
@@ -672,7 +677,7 @@ function rowsToObjects(rows) {
   const thIdx = keys.findIndex(k => /^themes?_./.test(k));
   const thLabel = thIdx >= 0 ? fixText(clean(rows[0][thIdx])).trim() : '';
   return rows.slice(1).map(r => { const o = {};
-    if (thIdx >= 0) { const v = norm(clean(r[thIdx])); if (v && !/^(false|faux|non|n|0)$/.test(v)) o.theme_named = thLabel; } keys.forEach((k, i) => { const v = fixText(clean(r[i])); if (k && (!o[k] || v)) o[k] = o[k] && v ? o[k] : (o[k] || v); }); return o; }).filter(o => o.nom);
+    if (thIdx >= 0) { const v = norm(clean(r[thIdx])); if (v && !/^(false|faux|non|n|0)$/.test(v)) { o.theme_named = thLabel; if (!/^(true|vrai|oui|o|x|yes|y|1)$/.test(v)) o.theme_note = fixText(clean(r[thIdx])).trim(); } } keys.forEach((k, i) => { const v = fixText(clean(r[i])); if (k && (!o[k] || v)) o[k] = o[k] && v ? o[k] : (o[k] || v); }); return o; }).filter(o => o.nom);
 }
 
 function parseGeo(v) {
@@ -707,6 +712,7 @@ function toSortie(o, i, used) {
     featured: /^(oui|o|x|yes|y|1|vrai|true)$/.test(norm(o.en_ce_moment)),
     age: o.age || '', price: o.prix || '', where: o.arrondissement || '', place: o.lieu || '',
     duration: o.duree || '', metro: o.metro || '', url: fixUrl(o.lien_partenaire) || fixUrl(o.lien_de_reservation || o.lien_reservation || (fixUrl(o.reservation) ? o.reservation : '') || o.lien),
+    themeNote: o.theme_note || '',
     themeRaw: String(o.theme_named || o.theme || o.themes || o.theme_saisonnier || o.bulle || '').trim(),
     insta: (u => /instagram\.com/i.test(u) ? u : '')(fixUrl(o.lien_instagram || o.instagram || o.post_instagram || o.lien_insta || o.post_insta || '')),
     partner: !!String(o.lien_partenaire || '').trim() && !/^(non|n|no|0|faux|false)$/.test(norm(o.lien_partenaire)),
@@ -942,6 +948,7 @@ function compactRow(s, extra, end) {
       <span class="thumb">${visual(s)}${ephCorner(s)}</span>
       <span class="rc-body">${badgeHtml(s) || ephTag(s) ? `<span class="rc-tags">${badgeHtml(s)}${ephTag(s)}</span>` : ''}<h3>${esc(s.t)}</h3>
         ${end ? `<span class="ln ln-end">${ICON.cal}${esc(end)}</span>` : s.from ? `<span class="ln ln-end">${ICON.cal}${esc(rangeTxt(s, true))}</span>` : ephLine(s)}
+        ${F.theme && s.themeNote && THEME_NOW ? `<span class="ln ln-th" style="--th:${THEME_NOW.look.color}">${THEME_NOW.look.icon}${esc(s.themeNote)}</span>` : ''}
         ${s.type ? `<span class="ln">${ICON.star}${esc(s.type)}</span>` : ''}
         ${l2 ? `<span class="ln">${ICON.price}${esc(l2)}</span>` : ''}
         ${extra || l3 ? `<span class="ln">${ICON.pin}${extra ? extra + (l3 ? ' · ' : '') : ''}${esc(l3)}</span>` : ''}
@@ -995,6 +1002,7 @@ function renderDetail(s) {
       ${s.geo ? `<a class="d-map" href="#carte/${encodeURIComponent(s.id)}">${ICON.map}Voir sur la carte</a>` : ''}
       ${facts ? `<div class="d-facts">${facts}</div>` : '<div style="height:20px"></div>'}
       ${s.bday ? `<div class="avoir-note bday-note"><strong>🎂 On peut y fêter un anniversaire</strong><p>${s.bdayNote ? esc(s.bdayNote) : 'Ce lieu organise des anniversaires : renseignez-vous directement auprès de lui pour les formules et les disponibilités.'}</p></div>` : ''}
+      ${themeNoteHtml(s)}
       ${s.pause ? `<div class="avoir-note pause-note"><strong>⏸ Momentanément en pause</strong><p>${s.pauseNote ? 'En pause ' + esc(s.pauseNote) + '.' : 'Elle reviendra bientôt, je vous tiens au courant !'}</p></div>` : ''}
       ${s.aVoir ? `<div class="avoir-note"><strong>👀 Pas encore testée par nous</strong><p>Je l’ai repérée pour vous, et je vous dirai vite ce qu’on en a pensé !</p></div>` : ''}
       ${s.aVoir && !s.why ? '' : `<h2>Qu’est-ce qu’on y trouve&nbsp;? ${ICON.heart.replace('fill="none"', 'fill="currentColor"')}</h2>
@@ -1377,6 +1385,12 @@ function computeTheme() {
 const THEME_DEFAULT = { color: '#9A3B6E', bg: '#F5E4EE',
   icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.5l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.5l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>' };
 const hasTheme = (s, key) => { const k = themeKey(s); return !!k && (k === key || k === '__tick'); };
+// Texte écrit dans la case « Thème … » à la place de « oui » : l'animation spéciale du lieu (ex. « Village de Noël du 29 nov. au 4 janv. »)
+function themeNoteHtml(s) {
+  const t = THEME_NOW;
+  if (!t || !s.themeNote || !hasTheme(s, t.key)) return '';
+  return `<div class="avoir-note th-note" style="--th:${t.look.color};--th-bg:${t.look.bg}"><strong>${t.look.icon}${esc(t.label)}</strong><p>${esc(s.themeNote).replace(/\n/g, '<br>')}</p></div>`;
+}
 function renderThemeBubble() {
   const b = document.querySelector('.q-theme'); if (!b) return;
   THEME_NOW = computeTheme();
@@ -1608,7 +1622,7 @@ async function load() {
   if (!SHEET_CSV_URL) { SORTIES = build(DEMO); STATE = 'ok'; route(); return; }
   try {
     const cached = JSON.parse(localStorage.getItem('mip-cache') || 'null');
-    if (cached && cached.length) { SORTIES = build(cached); STATE = 'ok'; }
+    if (cached && cached.length) { SORTIES = build(cached); THEME_NOW = computeTheme(); STATE = 'ok'; }
   } catch (e) {}
   route();
   try {
@@ -1616,7 +1630,7 @@ async function load() {
     const res = await fetch(SHEET_CSV_URL + sep + 't=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) throw new Error(res.status);
     const objs = rowsToObjects(parseCSV(await res.text()));
-    SORTIES = build(objs); STATE = 'ok';
+    SORTIES = build(objs); THEME_NOW = computeTheme(); STATE = 'ok';
     try { localStorage.setItem('mip-cache', JSON.stringify(objs)); } catch (e) {}
   } catch (e) {
     if (!SORTIES.length) STATE = 'error';

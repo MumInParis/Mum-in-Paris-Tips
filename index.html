@@ -397,6 +397,10 @@ html.is-app [data-install]{display:none!important}
 .coffee-mini strong{color:var(--pink);font-weight:600;white-space:nowrap}
 .cm-cup{font-size:22px;flex:none}
 #home-coffee{text-decoration:none}
+#we-sec{margin-top:22px}
+.we-dates{margin:-6px 18px 10px;font-size:13px;color:var(--ink-soft)}
+.rail.soon-rail .when.we-0,.rail.soon-rail .when.we-1{background:#F6E1E4;color:#B0102A}
+.rail.soon-rail .when.we-2{background:#E4EEEA;color:#2F5D50}
 .coffee{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);text-align:center}
 .coffee p{font-family:var(--sans,inherit);font-size:14px;color:var(--ink-soft);margin:0 0 12px;line-height:1.5}
 .insta-wrap{display:flex;justify-content:flex-end;margin:12px 0 4px}
@@ -532,6 +536,14 @@ html.is-app [data-install]{display:none!important}
     <h2 id="picks-t">FOCUS</h2>
   </div>
   <div class="picks" id="picks"></div>
+</section>
+
+<section aria-labelledby="we-t" id="we-sec" hidden>
+  <div class="sec-head">
+    <h2 id="we-t">On fait quoi ce week-end&nbsp;?</h2>
+  </div>
+  <p class="we-dates" id="we-dates"></p>
+  <div class="rail compact soon-rail we-rail" id="we-rail"></div>
 </section>
 
 <section aria-labelledby="soon-t" id="soon-sec" hidden>
@@ -875,10 +887,39 @@ function renderHome() {
   renderVacBubble();
 }
 /* Section « À venir » : tous les événements pas encore commencés, du plus proche au plus lointain */
+/* « On fait quoi ce week-end ? » : samedi-dimanche qui arrive (ou en cours) */
+function weekend() {
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  const d = t.getDay(), sat = new Date(t); sat.setDate(t.getDate() + (d === 0 ? -1 : (6 - d)));
+  const sun = new Date(sat); sun.setDate(sat.getDate() + 1); return [sat, sun];
+}
+// 0 = ce week-end seulement, 1 = dernier week-end, 2 = commence ce week-end, -1 = pas concerné
+function weRank(s) {
+  if (!s.from && !s.until) return -1;
+  const [sat, sun] = weekend(), f = s.from || new Date(0), u = s.until || new Date(8.64e15);
+  if (f > sun || u < sat) return -1;
+  const fIn = !!s.from && s.from >= sat, uIn = !!s.until && s.until <= sun;
+  return fIn && uIn ? 0 : uIn ? 1 : fIn ? 2 : -1;
+}
+const WE_TXT = ['Ce week-end seulement', 'Dernier week-end', 'Commence ce week-end'];
+function renderWeekend() {
+  const sec = document.getElementById('we-sec'), box = document.getElementById('we-rail');
+  if (!sec || !box) return;
+  const list = SORTIES.filter(s => !s.pause && weRank(s) >= 0).sort((a, b) => weRank(a) - weRank(b) || (a.until || 0) - (b.until || 0));
+  sec.hidden = !list.length; if (!list.length) return;
+  const [sat, sun] = weekend(), M = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  document.getElementById('we-dates').textContent = `Samedi ${sat.getDate()}${sat.getMonth() !== sun.getMonth() ? ' ' + M[sat.getMonth()] : ''} et dimanche ${sun.getDate()} ${M[sun.getMonth()]}`;
+  box.innerHTML = list.map(s => `
+    <article class="card" tabindex="0" role="link" aria-label="Voir la fiche ${esc(s.t)}" data-open="${esc(s.id)}">
+      <div class="pic">${visual(s)}</div>
+      <div class="body"><span class="when we-${weRank(s)}">${esc(WE_TXT[weRank(s)])}</span><h3>${esc(s.t)}</h3></div>
+    </article>`).join('');
+}
 function renderSoon() {
+  renderWeekend();
   const sec = document.getElementById('soon-sec'), box = document.getElementById('soon-rail');
   if (!sec || !box) return;
-  const list = SORTIES.filter(s => s.upcoming && !s.pause).sort((a, b) => a.from - b.from);
+  const list = SORTIES.filter(s => s.upcoming && !s.pause && weRank(s) < 0).sort((a, b) => a.from - b.from);
   sec.hidden = !list.length;
   box.innerHTML = list.map(s => `
     <article class="card" tabindex="0" role="link" aria-label="Voir la fiche ${esc(s.t)}" data-open="${esc(s.id)}">

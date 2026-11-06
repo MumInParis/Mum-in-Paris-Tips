@@ -393,6 +393,10 @@ html.is-app [data-install]{display:none!important}
 .inst-card .k{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:6px;background:var(--surface);border:1px solid var(--line);font-weight:600;font-size:14px;white-space:nowrap}
 .inst-warn{background:#F5ECDC;color:#6B4E14;border-radius:12px;padding:11px 14px;font-size:14px;line-height:1.4;text-align:left;margin:0 0 12px}
 .inst-go{margin-top:14px;width:100%}
+.coffee-mini{display:flex;align-items:center;gap:12px;margin:26px 0 4px;padding:12px 14px;border:1px dashed var(--line);border-radius:14px;color:var(--ink-soft);text-decoration:none;font-size:13.5px;line-height:1.4}
+.coffee-mini strong{color:var(--pink);font-weight:600;white-space:nowrap}
+.cm-cup{font-size:22px;flex:none}
+#home-coffee{text-decoration:none}
 .coffee{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);text-align:center}
 .coffee p{font-family:var(--sans,inherit);font-size:14px;color:var(--ink-soft);margin:0 0 12px;line-height:1.5}
 .insta-wrap{display:flex;justify-content:flex-end;margin:12px 0 4px}
@@ -544,6 +548,7 @@ html.is-app [data-install]{display:none!important}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r=".6" fill="currentColor"/></svg>
     Suivre @mum_inparis
   </a>
+  <a class="link-btn" id="home-coffee" target="_blank" rel="noopener" hidden style="margin-top:12px">☕ Ce guide carbure au café</a>
   <button class="link-btn install-btn" data-install style="margin-top:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 9v6M9 12h6"/></svg>Ajouter à mon écran d’accueil</button>
 </aside>
 </main>
@@ -1022,6 +1027,7 @@ function renderDetail(s) {
       <p class="why ${s.why ? '' : 'empty'}">${s.why ? esc(s.why).replace(/\n/g, '<br>') : 'Mon avis arrive très bientôt.'}</p>`}
       ${s.tip ? `<div class="tip">${ICON.bulb}<div><strong>Bon à savoir</strong><p>${esc(s.tip).replace(/\n/g, '<br>')}</p></div></div>` : ''}
       ${s.insta ? `<div class="insta-wrap"><a class="insta-link" href="${esc(s.insta)}" target="_blank" rel="noopener">${ICON.insta}<span>En détails</span></a></div>` : ''}
+      ${COFFEE_URL && !s.pause ? `<a class="coffee-mini" href="${esc(COFFEE_URL)}" target="_blank" rel="noopener"><span class="cm-cup">☕</span><span><strong>Soutenez la page&nbsp;!</strong><br>Un café pour garder les yeux ouverts… et vous dénicher encore plus de sorties 🤍</span></a>` : ''}
     </div>
     <div class="d-bar"><div class="d-bar-in">
       ${url ? `<a class="btn" href="${esc(url)}" target="_blank" rel="${s.partner ? 'noopener sponsored' : 'noopener'}">${ICON.ticket}On y va&nbsp;!${s.partner ? '<span class="star-p">*</span>' : ''}</a>` : ''}
@@ -1464,6 +1470,9 @@ async function loadAbout() {
     if (paras.length && norm(paras[0]) !== 'nom') {
       const c = paras.find(isCoffee);
       if (c) COFFEE_URL = fixUrl((c.match(/(https?:\/\/)?\S*(ko-fi\.com|buymeacoffee\.com|tipeee\.com|paypal\.me|lydia)\S*/i) || [''])[0]);
+      const hc = document.getElementById('home-coffee');
+      if (hc && COFFEE_URL) { hc.href = COFFEE_URL; hc.hidden = false; }
+      if (COFFEE_URL && location.hash.startsWith('#sortie/')) route();
       const text = paras.filter(t => !isCoffee(t));
       if (text.length) ABOUT = text;
       if (location.hash === '#a-propos') route();

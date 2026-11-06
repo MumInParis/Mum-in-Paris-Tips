@@ -707,7 +707,9 @@ function toSortie(o, i, used) {
   let id = slug(o.nom); while (used.has(id)) id += '-' + i; used.add(id);
   const e = norm(o.etiquette);
   return {
-    id, t: o.nom, type: o.categorie || '',
+    // Plusieurs catégories possibles : « Goûter, Atelier » (la 1re donne le picto et la couleur sur la carte)
+    ...(l => ({ type: l[0] || '', types: l }))(String(o.categorie || '').split(/\s*[,;\/+]\s*/).map(x => x.trim()).filter(Boolean)),
+    id, t: o.nom,
     badge: e.includes('coeur') ? 'coeur' : e.includes('grat') ? 'gratuit' : e.includes('plan') ? 'plan' : '',
     bday: !!String(o.anniversaire || o.anniversaires || '').trim() && !/^(non|n|no|0|faux|false)$/.test(norm(o.anniversaire || o.anniversaires)),
     bdayNote: /^(oui|o|x|yes|y|1|vrai|true)$/.test(norm(o.anniversaire || o.anniversaires)) ? '' : String(o.anniversaire || o.anniversaires || '').trim(),
@@ -959,7 +961,7 @@ function compactRow(s, extra, end) {
         ${end ? `<span class="ln ln-end">${ICON.cal}${esc(end)}</span>` : s.from ? `<span class="ln ln-end">${ICON.cal}${esc(rangeTxt(s, true))}</span>` : ephLine(s)}
         ${F.vac && s.vacNote ? `<span class="ln ln-th" style="--th:#2C6E8F">${ICON.bag}${esc(s.vacNote)}</span>` : ''}
         ${F.theme && s.themeNote && THEME_NOW ? `<span class="ln ln-th" style="--th:${THEME_NOW.look.color}">${THEME_NOW.look.icon}${esc(s.themeNote)}</span>` : ''}
-        ${s.type ? `<span class="ln">${ICON.star}${esc(s.type)}</span>` : ''}
+        ${s.type ? `<span class="ln">${ICON.star}${esc(s.types.join(' · '))}</span>` : ''}
         ${l2 ? `<span class="ln">${ICON.price}${esc(l2)}</span>` : ''}
         ${extra || l3 ? `<span class="ln">${ICON.pin}${extra ? extra + (l3 ? ' · ' : '') : ''}${esc(l3)}</span>` : ''}
       </span>
@@ -1006,7 +1008,7 @@ function renderDetail(s) {
       </div>
     </div>
     <div class="d-body">
-      <div class="tags">${s.type ? `<span class="badge b-type">${esc(s.type)}</span>` : ''}${badgeHtml(s)}${s.until ? `<span class="badge b-eph">${HOURGLASS}Durée limitée</span>` : ''}</div>
+      <div class="tags">${s.types.map(t => `<span class="badge b-type">${esc(t)}</span>`).join('')}${badgeHtml(s)}${s.until ? `<span class="badge b-eph">${HOURGLASS}Durée limitée</span>` : ''}</div>
       <h1>${esc(s.t)}</h1>
       ${s.where || s.place ? `<p class="loc">${ICON.pin}${esc([s.where, s.place].filter(Boolean).join(', '))}</p>` : ''}
       ${s.geo ? `<a class="d-map" href="#carte/${encodeURIComponent(s.id)}">${ICON.map}Voir sur la carte</a>` : ''}
@@ -1069,7 +1071,7 @@ function queryWords(q) {
 }
 function searchText(s) {
   const badge = (BADGES[s.badge] ? BADGES[s.badge][1] : '') + (s.aVoir ? ' a voir pas encore fait' : '') + (s.bday ? ' anniversaire anniversaires anniv' : '') + ' ' + (s.resaLabel || '') + (s.lastDays ? ' derniers jours' : '') + (s.upcoming ? ' bientot a venir prochainement' : '') + (s.until ? ' ephemere temporaire duree limitee' : ' permanent') + ' ' + (s.bdayNote || '');
-  const words = simple([s.t, s.type, badge, s.age, s.price, s.where, s.place, s.metro, s.duration, s.why, s.tip].join(' ')).split(' ');
+  const words = simple([s.t, s.types.join(' '), badge, s.age, s.price, s.where, s.place, s.metro, s.duration, s.why, s.tip].join(' ')).split(' ');
   return ' ' + words.map(stem).join(' ') + ' ' + words.join(' ') + ' ';
 }
 function matches(s) {
@@ -1088,7 +1090,7 @@ function matches(s) {
     const v = priceVal(s);
     if (v == null || !F.budget.some(k => k === 'free' ? v === 0 : k === '10' ? v <= 10 : k === '20' ? v > 10 && v <= 20 : v > 20)) return false;
   }
-  if (F.type.length && !F.type.includes(s.type)) return false;
+  if (F.type.length && !s.types.some(t => F.type.includes(t))) return false;
   const zones = F.ou.filter(k => k !== 'metro');
   if (zones.length) {
     const n = arrNum(s);
@@ -1099,7 +1101,7 @@ function matches(s) {
   if (F.occ.includes('anniv') && !s.bday) return false;
   if (F.resa.includes('sans') && s.resa !== 'sans') return false;
   if (F.resa.includes('last') && !s.lastDays) return false;
-  if (F.rain && ['exterieur', 'nature'].includes(norm(s.type))) return false;
+  if (F.rain && s.types.some(t => ['exterieur', 'nature'].includes(norm(t)))) return false;
   if (F.soon && !s.soon) return false;
   if (F.theme && !hasTheme(s, F.theme)) return false;
   if (F.vac && !s.vac) return false;
@@ -1109,7 +1111,7 @@ const results = () => SORTIES.filter(matches);
 const countLabel = n => n ? `Afficher ${n} sortie${n > 1 ? 's' : ''}` : 'Aucune sortie';
 
 function renderFilters() {
-  const types = [...new Set(SORTIES.map(s => s.type).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+  const types = [...new Set(SORTIES.flatMap(s => s.types))].sort((a, b) => a.localeCompare(b, 'fr'));
   const sec = g => {
     const opts = g.opts || types.map(t => [t, t]);
     if (!opts.length) return '';
@@ -1136,7 +1138,7 @@ function renderResults() {
   const tags = [];
   if (F.q) tags.push(['q', '', '« ' + F.q + ' »']);
   GROUPS.forEach(g => F[g.key].forEach(v => {
-    if (g.key === 'type' && !SORTIES.some(x => x.type === v)) return;
+    if (g.key === 'type' && !SORTIES.some(x => x.types.includes(v))) return;
     const o = (g.opts || []).find(x => x[0] === v);
     tags.push([g.key, v, o ? o[1] : (LABELS[v] || v)]);
   }));
@@ -1282,7 +1284,7 @@ async function drawMap(focusId, onlyIds) {
     const c = PIN_CATS[pinCat(s)];
     const icon = L.divIcon({ className: '', html: `<div class="pin">${pinSvg(c)}${s.badge === 'coeur' ? '<span class="pin-heart">♥</span>' : ''}</div>`, iconSize: [34, 34], iconAnchor: [17, 32], popupAnchor: [0, -28] });
     const m = L.marker(s.geo, { icon, title: s.t }).addTo(mapObj)
-      .bindPopup(`<div class="pop"><h3>${esc(s.t)}</h3><p>${esc([s.type, s.where, s.price].filter(Boolean).join(' · '))}</p><a href="#sortie/${encodeURIComponent(s.id)}">Voir la fiche →</a></div>`);
+      .bindPopup(`<div class="pop"><h3>${esc(s.t)}</h3><p>${esc([s.types.join(', '), s.where, s.price].filter(Boolean).join(' · '))}</p><a href="#sortie/${encodeURIComponent(s.id)}">Voir la fiche →</a></div>`);
     m._sid = s.id; m._cat = pinCat(s); markers.push(m);
   });
   mapMarkers = markers; applyMapFilter();

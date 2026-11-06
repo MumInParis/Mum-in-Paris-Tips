@@ -714,7 +714,8 @@ function toSortie(o, i, used) {
     pause: !!(o.en_pause || '').trim() && !/^(non|n|no|0|faux|false)$/.test(norm(o.en_pause)),
     pauseNote: /^(oui|o|x|yes|y|1|vrai|true)$/.test(norm(o.en_pause)) ? '' : (o.en_pause || '').trim(),
     aVoir: (!!String(o.pas_encore_fait || o.a_voir || '').trim() && !/^(non|n|no|0|faux|false)$/.test(norm(o.pas_encore_fait || o.a_voir))) || e.includes('a voir') || e.includes('pas encore'),
-    featured: /^(oui|o|x|yes|y|1|vrai|true)$/.test(norm(o.en_ce_moment)),
+    featured: /^(oui|o|x|yes|y|1|vrai|true|(en )?premiere?|1er|top)$/.test(norm(o.en_ce_moment)),
+    pinned: /^((en )?premiere?|1er|top)$/.test(norm(o.en_ce_moment)),
     age: o.age || '', price: o.prix || '', where: o.arrondissement || '', place: o.lieu || '',
     duration: o.duree || '', metro: o.metro || '', url: fixUrl(o.lien_partenaire) || fixUrl(o.lien_de_reservation || o.lien_reservation || (fixUrl(o.reservation) ? o.reservation : '') || o.lien),
     themeNote: o.theme_note || '',
@@ -852,7 +853,8 @@ function renderHome() {
   // activités et expos avant les spectacles), puis les événements à venir, puis le reste
   const isShow = x => /^(spectacle|theatre)$/.test(norm(x.type));
   const rank = x => x.until && !x.upcoming ? (isShow(x) ? 1 : 0) : x.upcoming ? 2 : 3;
-  const list = base.slice().sort((a, b) => rank(a) - rank(b) || (rank(a) < 2 ? a.until - b.until : 0));
+  // « en premier » dans la colonne « En ce moment » : la sortie passe en tête de la frise
+  const list = base.slice().sort((a, b) => !!b.pinned - !!a.pinned || rank(a) - rank(b) || (rank(a) < 2 ? a.until - b.until : 0));
   rail.innerHTML = list.length ? list.map(s => `
     <article class="card" tabindex="0" role="link" aria-label="Voir la fiche ${esc(s.t)}" data-open="${esc(s.id)}">
       <div class="pic">${visual(s)}${badgeHtml(s)}${s.until ? `<span class="eph eph-c">Durée limitée</span>` : ''}

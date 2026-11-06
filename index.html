@@ -708,7 +708,7 @@ function toSortie(o, i, used) {
   const e = norm(o.etiquette);
   return {
     // Plusieurs catégories possibles : « Goûter, Atelier » (la 1re donne le picto et la couleur sur la carte)
-    ...(l => ({ type: l[0] || '', types: l }))(String(o.categorie || '').split(/\s*[,;\/+]\s*/).map(x => x.trim()).filter(Boolean)),
+    ...(l => ({ type: l[0] || '', types: l }))([o.categorie, o.categorie_2, o.categorie2, o.categorie_3, o.autre_categorie, o.categorie_secondaire].filter(Boolean).join(',').split(/\s*[,;\/+]\s*/).map(x => x.trim()).filter((x, i, a) => x && a.indexOf(x) === i)),
     id, t: o.nom,
     badge: e.includes('coeur') ? 'coeur' : e.includes('grat') ? 'gratuit' : e.includes('plan') ? 'plan' : '',
     bday: !!String(o.anniversaire || o.anniversaires || '').trim() && !/^(non|n|no|0|faux|false)$/.test(norm(o.anniversaire || o.anniversaires)),

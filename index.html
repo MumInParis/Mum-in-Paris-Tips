@@ -754,7 +754,7 @@ function parseDate(v) {
   m = t.match(/(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?/);
   if (m) { let y = m[3] ? +m[3] : new Date().getFullYear(); if (y < 100) y += 2000; return new Date(y, +m[2] - 1, +m[1]); }
   m = t.match(/(\d{1,2})(?:er)?\s+([a-z]+)\.?(?:\s+(\d{4}))?/);
-  if (m) { const i = MOIS.findIndex(x => x.startsWith(m[2].slice(0, 3))); if (i >= 0) return new Date(m[3] ? +m[3] : new Date().getFullYear(), i, +m[1]); }
+  if (m) { const w = m[2], i = MOIS.findIndex(x => x.startsWith(w.slice(0, 4))) >= 0 ? MOIS.findIndex(x => x.startsWith(w.slice(0, 4))) : MOIS.findIndex(x => x.startsWith(w.slice(0, 3))); if (i >= 0) return new Date(m[3] ? +m[3] : new Date().getFullYear(), i, +m[1]); }
   return null;
 }
 const fmtDate = d => d.getDate() + (d.getDate() === 1 ? 'er' : '') + ' ' + ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'][d.getMonth()] + ' ' + d.getFullYear();

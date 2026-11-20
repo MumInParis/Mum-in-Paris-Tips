@@ -401,6 +401,11 @@ html.is-app [data-install]{display:none!important}
 .we-dates{margin:-6px 18px 10px;font-size:13px;color:var(--ink-soft)}
 .rail.soon-rail .when.we-0,.rail.soon-rail .when.we-1{background:#F6E1E4;color:#B0102A}
 .rail.soon-rail .when.we-2{background:#E4EEEA;color:#2F5D50}
+.promo{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 18px 10px;padding:8px 16px;border-radius:14px;background:var(--pink-soft);border:1px solid #EFC9CF;color:var(--pink-ink);text-decoration:none;font-size:13px;line-height:1.35;text-align:center}
+.promo-t strong{display:block;font-weight:700}
+.promo-d{display:block;font-size:12px;opacity:.85}
+.promo-t{flex:0 1 auto}
+.promo-a{flex:none;font-size:15px;color:var(--pink)}
 .coffee{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);text-align:center}
 .coffee p{font-family:var(--sans,inherit);font-size:14px;color:var(--ink-soft);margin:0 0 12px;line-height:1.5}
 .insta-wrap{display:flex;justify-content:flex-end;margin:12px 0 4px}
@@ -499,6 +504,8 @@ html.is-app [data-install]{display:none!important}
     </g>
   </svg>
 </div>
+
+<a class="promo" id="promo" hidden target="_blank" rel="noopener"><span class="promo-t"><strong></strong><span class="promo-d"></span></span><span class="promo-a" aria-hidden="true">→</span></a>
 
 <form class="search" role="search" id="home-search">
   <label>
@@ -1386,6 +1393,30 @@ function renderAbout() {
 /* ---------- Spécial vacances (onglet « Vacances » de la feuille) ---------- */
 let VAC = [];
 const VAC_ART = '<svg viewBox="0 0 72 72" aria-hidden="true"><rect width="72" height="72" fill="#F5ECDC"/><circle cx="50" cy="22" r="9" fill="#E9B949"/><path d="M8 52q14-8 28 0t28 0v20H8z" fill="#BFD7E3"/><path d="M22 52V30" stroke="#141414" stroke-width="1.6"/><path d="M22 30q-12 1-14 9q8-6 14-5q-4 4-4 10q6-6 4-14q6 2 10 8q-1-8-10-9q8-4 14-2q-6-6-14 3" fill="#2F5D50"/></svg>';
+/* ---------- Bandeau promo (onglet « Bandeau » : Texte | Lien | Jusqu'au) ---------- */
+async function loadBanner() {
+  if (!SHEET_CSV_URL) return;
+  try {
+    const url = SHEET_CSV_URL.replace(/([?&])sheet=[^&]*/, '$1sheet=' + encodeURIComponent('Bandeau'));
+    const res = await fetch(url + '&t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    const rows = parseCSV(await res.text());
+    const head = (rows[0] || []).map(HEAD);
+    // Si l'onglet n'existe pas, Google renvoie le premier onglet (Sorties) : on l'ignore.
+    if (!head.includes('texte') || head.includes('nom')) return;
+    const t0 = today0();
+    const objs = rows.slice(1).map(r => { const o = {}; head.forEach((k, i) => { if (k && r[i] && !o[k]) o[k] = r[i]; }); return o; });
+    const b = objs.find(o => clean(o.texte || '') && (!parseDate(o.jusqu_au || o.jusquau || o.fin || '') || parseDate(o.jusqu_au || o.jusquau || o.fin || '') >= t0) && !/^(non|n|0|false|faux)$/.test(norm(o.afficher || 'oui')));
+    const el = document.getElementById('promo');
+    if (!b || !el) return;
+    const link = fixUrl(clean(b.lien || ''));
+    el.querySelector('.promo-t strong').textContent = fixText(clean(b.texte));
+    const det = fixText(clean(b.detail || b.details || b.sous_texte || b.ligne_2 || ''));
+    const dEl = el.querySelector('.promo-d'); if (det) dEl.textContent = det; else dEl.remove();
+    if (link) { el.href = link; if (/^#/.test(link)) { el.removeAttribute('target'); } } else { el.removeAttribute('href'); el.querySelector('.promo-a').remove(); }
+    el.hidden = false;
+  } catch (e) {}
+}
 async function loadVacances() {
   if (!SHEET_CSV_URL) return;
   try {
@@ -1718,6 +1749,7 @@ async function load() {
 load();
 loadAbout();
 loadVacances();
+loadBanner();
 
 </script>
 </body>

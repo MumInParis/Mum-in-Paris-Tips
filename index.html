@@ -403,6 +403,13 @@ html.is-app [data-install]{display:none!important}
 .rail.soon-rail .when.we-2{background:#E4EEEA;color:#2F5D50}
 .promo{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 18px 10px;padding:8px 16px;border-radius:14px;background:var(--pink-soft);border:1px solid #EFC9CF;color:var(--pink-ink);text-decoration:none;font-size:13px;line-height:1.35;text-align:center}
 .promo-t strong{display:block;font-weight:700}
+.promos .promo+.promo{margin-top:-4px}
+.promo.p-vert{background:#E4EEEA;border-color:#C5DBD2;color:#2F5D50}
+.promo.p-vert .promo-a{color:#2F5D50}
+.promo.p-bleu{background:#E3EEF3;border-color:#C3DBE6;color:#1F5670}
+.promo.p-bleu .promo-a{color:#2C6E8F}
+.promo.p-or{background:#F5ECDC;border-color:#E6D3AE;color:#7A5714}
+.promo.p-or .promo-a{color:#B8862B}
 .promo-d{display:block;font-size:12px;opacity:.85}
 .promo-t{flex:0 1 auto}
 .promo-a{flex:none;font-size:15px;color:var(--pink)}
@@ -505,7 +512,7 @@ html.is-app [data-install]{display:none!important}
   </svg>
 </div>
 
-<a class="promo" id="promo" hidden target="_blank" rel="noopener"><span class="promo-t"><strong></strong><span class="promo-d"></span></span><span class="promo-a" aria-hidden="true">→</span></a>
+<div class="promos" id="promos" hidden></div>
 
 <form class="search" role="search" id="home-search">
   <label>
@@ -1078,7 +1085,7 @@ function renderDetail(s) {
       ${COFFEE_URL && !s.pause ? `<a class="coffee-mini" href="${esc(COFFEE_URL)}" target="_blank" rel="noopener"><span class="cm-cup">☕</span><span><strong>Soutenez la page&nbsp;!</strong><br>Un café pour garder les yeux ouverts… et vous dénicher encore plus de sorties 🤍</span></a>` : ''}
     </div>
     <div class="d-bar"><div class="d-bar-in">
-      ${url ? `<a class="btn" href="${esc(url)}" target="_blank" rel="${s.partner ? 'noopener sponsored' : 'noopener'}">${ICON.ticket}On y va&nbsp;!${s.partner ? '<span class="star-p">*</span>' : ''}</a>` : ''}
+      ${url ? `<a class="btn" href="${esc(url)}"${APP_LINK.test(url) ? '' : ' target="_blank"'} rel="${s.partner ? 'noopener sponsored' : 'noopener'}">${ICON.ticket}On y va&nbsp;!${s.partner ? '<span class="star-p">*</span>' : ''}</a>` : ''}
       ${url && s.partner ? `<p class="partner-note">*Lien partenaire : aucun surcoût pour vous 🤍</p>` : ''}
       <button class="link-btn" data-share>${ICON.share}Partager cette sortie</button>
     </div></div>`;
@@ -1202,6 +1209,7 @@ function renderResults() {
   if (F.vac) tags.push(['vac', '', vacLabel()]);
   return `<div class="v-head"><button class="icon-btn" data-back aria-label="Retour">${ICON.back}</button><h1>${list.length} sortie${list.length > 1 ? 's' : ''} trouvée${list.length > 1 ? 's' : ''}</h1></div>
   ${tags.length ? `<div class="active-filters">${tags.map(([k, v, l]) => `<button class="chip" aria-pressed="true" data-rm="${k}" data-v="${esc(v)}" aria-label="Retirer le filtre ${esc(l)}">${esc(l)} ✕</button>`).join('')}</div>` : ''}
+  ${F.vac ? promoHtml(VAC_PROMO) : ''}
   ${F.vac && VAC.length ? `<p style="margin:0 18px 12px"><a class="d-map" href="#vacances">${ICON.bag}Voir aussi le programme spécial vacances</a></p>` : ''}
   ${list.length ? sortBar() + rowCards(list)
   : `<div class="empty-box"><p>Aucune sortie ne correspond à tous ces critères. Retirez un filtre pour voir plus d’idées.</p><button class="btn soft" data-go="#rechercher">Modifier la recherche</button></div>`}`;
@@ -1393,7 +1401,18 @@ function renderAbout() {
 /* ---------- Spécial vacances (onglet « Vacances » de la feuille) ---------- */
 let VAC = [];
 const VAC_ART = '<svg viewBox="0 0 72 72" aria-hidden="true"><rect width="72" height="72" fill="#F5ECDC"/><circle cx="50" cy="22" r="9" fill="#E9B949"/><path d="M8 52q14-8 28 0t28 0v20H8z" fill="#BFD7E3"/><path d="M22 52V30" stroke="#141414" stroke-width="1.6"/><path d="M22 30q-12 1-14 9q8-6 14-5q-4 4-4 10q6-6 4-14q6 2 10 8q-1-8-10-9q8-4 14-2q-6-6-14 3" fill="#2F5D50"/></svg>';
+// Liens vers des sites qui ont une appli (Fever…) : ouverts dans le même onglet,
+// pour que l'iPhone / Android propose d'ouvrir directement l'appli si elle est installée
+const APP_LINK = /^https?:\/\/([\w-]+\.)*(feverup\.com|fever\.co)\//i;
 /* ---------- Bandeau promo (onglet « Bandeau » : Texte | Lien | Jusqu'au) ---------- */
+let VAC_PROMO = null;
+// Lien du bandeau : adresse web, ou simple nom d'un fichier déposé sur GitHub (ex. « spectacles-noel.pdf »)
+const promoUrl = u => /^[\w.\-\/]+\.(pdf|png|jpe?g)$/i.test(u) && !/^(https?:|www\.)/i.test(u) ? u.replace(/^\/+/, '') : fixUrl(u);
+function promoHtml(b, color = 'rose') {
+  if (!b) return '';
+  const inner = `<span class="promo-t"><strong>${esc(b.texte)}</strong>${b.detail ? `<span class="promo-d">${esc(b.detail)}</span>` : ''}</span>${b.link ? '<span class="promo-a" aria-hidden="true">→</span>' : ''}`;
+  return b.link ? `<a class="promo p-${color}" href="${esc(b.link)}"${APP_LINK.test(b.link) ? '' : ' target="_blank" rel="noopener"'}>${inner}</a>` : `<div class="promo p-${color}">${inner}</div>`;
+}
 async function loadBanner() {
   if (!SHEET_CSV_URL) return;
   try {
@@ -1406,15 +1425,20 @@ async function loadBanner() {
     if (!head.includes('texte') || head.includes('nom')) return;
     const t0 = today0();
     const objs = rows.slice(1).map(r => { const o = {}; head.forEach((k, i) => { if (k && r[i] && !o[k]) o[k] = r[i]; }); return o; });
-    const b = objs.find(o => clean(o.texte || '') && (!parseDate(o.jusqu_au || o.jusquau || o.fin || '') || parseDate(o.jusqu_au || o.jusquau || o.fin || '') >= t0) && !/^(non|n|0|false|faux)$/.test(norm(o.afficher || 'oui')));
-    const el = document.getElementById('promo');
-    if (!b || !el) return;
-    const link = fixUrl(clean(b.lien || ''));
-    el.querySelector('.promo-t strong').textContent = fixText(clean(b.texte));
-    const det = fixText(clean(b.detail || b.details || b.sous_texte || b.ligne_2 || ''));
-    const dEl = el.querySelector('.promo-d'); if (det) dEl.textContent = det; else dEl.remove();
-    if (link) { el.href = link; if (/^#/.test(link)) { el.removeAttribute('target'); } } else { el.removeAttribute('href'); el.querySelector('.promo-a').remove(); }
-    el.hidden = false;
+    const ok = o => clean(o.texte || '') && (!parseDate(o.jusqu_au || o.jusquau || o.fin || '') || parseDate(o.jusqu_au || o.jusquau || o.fin || '') >= t0) && !/^(non|n|0|false|faux)$/.test(norm(o.afficher || 'oui'));
+    // Colonne « Où » (facultative) : vide ou « accueil » = page d'accueil, « vacances » = en haut de la bulle Vacances
+    const where = o => /vacances/.test(norm(o.ou || o.emplacement || o.page || '')) ? 'vac' : 'home';
+    const promoColor = (o, i) => { const c = norm(o.couleur || ''); return /vert/.test(c) ? 'vert' : /bleu/.test(c) ? 'bleu' : /dore|jaune|or\b|ocre/.test(c) ? 'or' : /rose|rouge/.test(c) ? 'rose' : ['rose', 'vert', 'bleu'][i % 3]; };
+    const promo = o => ({ texte: fixText(clean(o.texte)), detail: fixText(clean(o.detail || o.details || o.sous_texte || o.ligne_2 || '')), link: promoUrl(clean(o.lien || '')) });
+    const vb = objs.find(o => ok(o) && where(o) === 'vac');
+    VAC_PROMO = vb ? promo(vb) : null;
+    if (VAC_PROMO && F.vac && location.hash === '#resultats') route();
+    // Accueil : un ruban par ligne (3 au maximum), chacun de sa couleur
+    const home = objs.filter(o => ok(o) && where(o) === 'home').slice(0, 3);
+    const box = document.getElementById('promos');
+    if (!box || !home.length) return;
+    box.innerHTML = home.map((o, i) => promoHtml(promo(o), promoColor(o, i))).join('');
+    box.hidden = false;
   } catch (e) {}
 }
 async function loadVacances() {

@@ -35,7 +35,7 @@ h2{font-family:Caladea,serif;font-size:14.5pt;margin:0 0 2px;line-height:1.2}
 .foot{margin-top:14px;border-top:1.5px solid #141414;padding-top:8px;font-size:8.5pt;color:#555;display:flex;justify-content:space-between}
 .foot a{color:#C8102E;text-decoration:none;font-weight:600}
 </style></head><body>
-<div class="topbar"><a class="back" href="./" id="back">← Retour</a><a class="dl" href="spectacles-noel.pdf" download>Télécharger le PDF</a></div>
+<div class="topbar"><a class="back" href="./" id="back">← Retour</a><a class="dl" href="spectacles-noel.pdf" download>⤓ Télécharger le PDF</a></div>
 <div class="head"><div class="brand"><b>Mum</b> in Paris</div><div class="site">Parce que Paris, c’est à visiter en famille !</div></div>
 <h1>Spectacles des fêtes 2026-2027</h1>
 <p class="intro">10 spectacles pour enfants à voir pendant les vacances de Noël à Paris. Touchez « Réserver » pour accéder directement à la billetterie.</p>
@@ -53,6 +53,16 @@ document.getElementById('list').innerHTML=S.map((s,i)=>`<div class="show"><div c
 <p class="avis"><b>♥ L’avis de Mum</b> ${e(s.avis)}</p>
 ${s.bon?`<p class="bon"><b>Bon à savoir :</b> ${e(s.bon)}</p>`:''}
 <div class="links"><a class="btn" href="${e(s.url)}" target="_blank" rel="noopener">Réserver ↗</a></div></div></div>`).join('');
-if((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone){const d=document.querySelector('.dl');if(d)d.remove();}
+// « Télécharger le PDF » : dans l'app installée, on passe par le menu Partager du téléphone
+// (Enregistrer dans Fichiers, WhatsApp, AirDrop…) pour ne jamais rester bloqué sur le PDF.
+document.querySelector('.dl').addEventListener('click',async ev=>{
+  const app=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone;
+  if(!navigator.canShare||!(app||/iPhone|iPad|Android/i.test(navigator.userAgent)))return;
+  ev.preventDefault();
+  try{const r=await fetch('spectacles-noel.pdf');const f=new File([await r.blob()],'Spectacles-des-fetes-Mum-in-Paris.pdf',{type:'application/pdf'});
+    if(navigator.canShare({files:[f]}))await navigator.share({files:[f],title:'Spectacles des fêtes – Mum in Paris'});
+    else if(!app)location.href='spectacles-noel.pdf';
+  }catch(e){if(e&&e.name!=='AbortError'&&!app)location.href='spectacles-noel.pdf';}
+});
 document.getElementById('back').addEventListener('click',ev=>{if(history.length>1&&document.referrer&&new URL(document.referrer).origin===location.origin){ev.preventDefault();history.back();}});
 </script></body></html>

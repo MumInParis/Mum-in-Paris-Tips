@@ -1407,11 +1407,11 @@ const APP_LINK = /^https?:\/\/([\w-]+\.)*(feverup\.com|fever\.co)\//i;
 /* ---------- Bandeau promo (onglet « Bandeau » : Texte | Lien | Jusqu'au) ---------- */
 let VAC_PROMO = null;
 // Lien du bandeau : adresse web, ou simple nom d'un fichier déposé sur GitHub (ex. « spectacles-noel.pdf »)
-const promoUrl = u => /^[\w.\-\/]+\.(pdf|png|jpe?g)$/i.test(u) && !/^(https?:|www\.)/i.test(u) ? u.replace(/^\/+/, '') : fixUrl(u);
+const promoUrl = u => /^[\w.\-\/]+\.(pdf|png|jpe?g|html?)$/i.test(u) && !/^(https?:|www\.)/i.test(u) ? u.replace(/^\/+/, '') : fixUrl(u);
 function promoHtml(b, color = 'rose') {
   if (!b) return '';
   const inner = `<span class="promo-t"><strong>${esc(b.texte)}</strong>${b.detail ? `<span class="promo-d">${esc(b.detail)}</span>` : ''}</span>${b.link ? '<span class="promo-a" aria-hidden="true">→</span>' : ''}`;
-  return b.link ? `<a class="promo p-${color}" href="${esc(b.link)}"${APP_LINK.test(b.link) ? '' : ' target="_blank" rel="noopener"'}>${inner}</a>` : `<div class="promo p-${color}">${inner}</div>`;
+  return b.link ? `<a class="promo p-${color}" href="${esc(b.link)}"${APP_LINK.test(b.link) || !/^https?:/i.test(b.link) ? '' : ' target="_blank" rel="noopener"'}>${inner}</a>` : `<div class="promo p-${color}">${inner}</div>`;
 }
 async function loadBanner() {
   if (!SHEET_CSV_URL) return;

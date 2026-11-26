@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#F6F3EE"><title>Spectacles des fêtes – Mum in Paris</title>
+<style>
+@page{size:A4;margin:14mm 14mm 16mm}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0 auto;max-width:640px;padding:0 18px 30px;background:#F6F3EE;font-family:Inter,sans-serif;color:#141414;font-size:10.5pt;line-height:1.45}
+.topbar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 -18px 10px;padding:calc(10px + env(safe-area-inset-top,0px)) 18px 10px;background:#F6F3EE;border-bottom:1px solid #e3ddd3}
+.back{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:#141414;color:#fff;text-decoration:none;font-weight:600;font-size:14px}
+.dl{color:#A50D26;font-weight:600;font-size:13px;text-decoration:none}
+@media print{.topbar{display:none}}
+.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.5px solid #141414;padding-bottom:8px;margin-bottom:6px}
+.brand{font-family:Caladea,serif;font-style:italic;font-size:15pt}
+.brand b{color:#C8102E;font-style:normal}
+.site{font-size:8.5pt;color:#6b6b6b}
+h1{font-family:Caladea,serif;font-weight:700;font-size:26pt;line-height:1.1;margin:14px 0 4px}
+.intro{color:#555;margin:0 0 14px;font-size:10pt}
+.show{display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid #e3ddd3;page-break-inside:avoid}
+.n{font-family:Caladea,serif;font-size:18pt;color:#C8102E;line-height:1}
+h2{font-family:Caladea,serif;font-size:14.5pt;margin:0 0 2px;line-height:1.2}
+.meta{font-size:9pt;color:#444;margin:0 0 4px}
+.meta span{white-space:normal}
+.meta span+span::before{content:" · ";color:#bbb}
+.desc{margin:0 0 6px;font-size:9.8pt}
+.avis{margin:0 0 7px;padding:6px 10px;background:#F6E3E5;border-left:3px solid #C8102E;border-radius:4px;font-size:9.6pt;font-style:italic}
+.avis b{font-style:normal;color:#A50D26;margin-right:4px}
+.bon{margin:0 0 7px;font-size:9.2pt;color:#444}
+.bon b{color:#141414}
+.cdc{display:inline-block;vertical-align:middle;margin-left:6px;padding:1px 8px;border-radius:5px;background:#C8102E;color:#fff;font-family:Inter,sans-serif;font-size:7.5pt;font-weight:700}
+.aff{margin:8px 0 0;font-size:8.5pt;color:#6b6b6b;text-align:center}
+.links{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-block;padding:4px 11px;border-radius:999px;background:#141414;color:#fff;text-decoration:none;font-size:8.8pt;font-weight:600}
+.btn.info{background:#F6E3E5;color:#A50D26}
+.url{font-size:7.8pt;color:#8a8a8a;word-break:break-all}
+.foot{margin-top:14px;border-top:1.5px solid #141414;padding-top:8px;font-size:8.5pt;color:#555;display:flex;justify-content:space-between}
+.foot a{color:#C8102E;text-decoration:none;font-weight:600}
+</style></head><body>
+<div class="topbar"><a class="back" href="./" id="back">← Retour</a><a class="dl" href="spectacles-noel.pdf" download>Télécharger le PDF</a></div>
+<div class="head"><div class="brand"><b>Mum</b> in Paris</div><div class="site">Parce que Paris, c’est à visiter en famille !</div></div>
+<h1>Spectacles des fêtes 2026-2027</h1>
+<p class="intro">10 spectacles pour enfants à voir pendant les vacances de Noël à Paris. Touchez « Réserver » pour accéder directement à la billetterie.</p>
+<div id="list"></div>
+<div class="foot"><span>Toutes nos sorties testées, approuvées ou repérées :</span><a href="https://muminparis.github.io/Mum-in-Paris-Tips/">muminparis.github.io/Mum-in-Paris-Tips</a></div>
+<p class="aff">Certains liens sont affiliés, aucun surcoût pour vous 🤍</p>
+<script>
+const S=[{"t": "Disney sur Glace : « Le voyage enchanté »", "lieu": "Adidas Arena, 56 bd Ney, Paris 18e", "dates": "Du 6 au 17 janvier 2027", "age": "Dès 3 ans", "prix": "Dès 26 €", "desc": "Un spectacle sur glace avec Mary Poppins, Simba, Aladdin et les grands personnages Disney.", "avis": "On y va depuis 3 ans, c’est toujours un émerveillement !", "url": "https://www.ticketac.com/spectacles/disney-sur-glace-36407?utm_source=Facebook&utm_medium=social&utm_campaign=MUMinparis-disneyonice"}, {"t": "La Féerie des Eaux", "lieu": "Le Grand Rex, 1 bd Poissonnière, Paris 2e", "dates": "Du 25 novembre 2026 au 3 janvier 2027", "age": "Dès 6 ans", "prix": "Dès 14 €", "duree": "2h15", "desc": "Le rendez-vous annuel de fontaines, lumières et musique, suivi du film d’animation de l’année. Réservation obligatoire.", "avis": "On sait que les écrans ne sont pas recommandés… mais s’il y a bien une séance ciné annuelle à faire, c’est la Féerie des Eaux :)", "bon": "Je trouve que le film de cette année n’est pas forcément adapté aux plus jeunes, c’est presque dommage !", "url": "https://tidd.ly/3VgyOmd"}, {"t": "Le Grand Hôtel des Rêves : la Véritable Histoire du Père Noël", "lieu": "47 rue du Cardinal Lemoine, Paris 5e", "dates": "Du 21 novembre 2026 au 3 janvier 2027", "age": "Pour toute la famille", "prix": "Dès 20 €", "duree": "1h", "desc": "Un théâtre immersif : les enfants suivent les comédiens de pièce en pièce pour découvrir les origines du Père Noël.", "avis": "Un beau spectacle immersif dans le thème de Noël !", "url": "https://tidd.ly/4dodpNX"}, {"t": "Pocahontas, le musical", "cdc": 1, "lieu": "Théâtre de la Gaîté Rive Gauche, 6 rue de la Gaîté, Paris 14e", "dates": "Du 19 septembre 2026 au 30 mai 2027", "age": "Dès 3 ans", "prix": "Dès 19 €", "duree": "1h10", "desc": "La légende de Pocahontas en comédie musicale, avec décors immersifs et projections.", "avis": "Il est très beau ! Visuellement, artistiquement, avec la musique en live par une musicienne :)", "url": "https://tidd.ly/47JJc8A"}, {"t": "Peter Pan, le musical", "lieu": "Bobino, 14-20 rue de la Gaîté, Paris 14e", "dates": "Du 3 octobre 2026 au 30 janvier 2027", "age": "Dès 3 ans", "desc": "Les aventures de Peter Pan, la Fée Clochette, Wendy et le Capitaine Crochet, avec plus de quinze comédiens et danseurs.", "avis": "Pour les fans de Peter !", "url": "https://tidd.ly/4yERgDP"}, {"t": "La Belle et la Bête", "lieu": "Théâtre du Gymnase, 38 bd de Bonne-Nouvelle, Paris 10e", "dates": "Du 19 septembre 2026 au 2 janvier 2027", "age": "Dès 4 ans", "prix": "Dès 12,95 €", "duree": "1h15", "desc": "Une version moderne du conte, au Théâtre du Gymnase.", "avis": "Une version moderne, pleine de clins d’œil, des musiques entraînantes, des comédiens vraiment top ! Et proximité avec le public !", "bon": "« ♪ apate apate » 😆", "url": "https://www.ticketac.com/spectacles/la-belle-et-la-bete-1?utm_source=Facebook&utm_medium=social&utm_campaign=MUMinparis-belleetlabete"}, {"t": "Le Roi Lion", "cdc": 1, "lieu": "Théâtre Mogador, 25 rue de Mogador, Paris 9e", "dates": "Du 17 octobre 2026 au 27 juin 2027", "age": "Dès 5 ans (attention, long !)", "prix": "Dès 38 €", "duree": "2h40 avec entracte", "desc": "La comédie musicale Disney, réputée pour ses costumes, ses maquillages et sa musique.", "avis": "Un spectacle splendide, des costumes magnifiques. On y retrouve aussi une expo à visiter pendant la pause pipi de l’entracte :)", "bon": "Il est plutôt recommandé à partir de 7 ans, on y est allés à ses 4 ans et c’était captivant. Attention, accès salle interdit aux moins de 3 ans de mémoire ! Les prix sont assez vertigineux, tout comme les places balcon (moins chères :))", "url": "https://www.ticketac.com/spectacles/le-roi-lion-theatre-mogador.htm?utm_source=Facebook&utm_medium=social&utm_campaign=MUMinparis-roilion"}, {"t": "Aladin", "lieu": "Théâtre de la Comédie Saint-Martin, 35 bd Saint-Martin, Paris 3e", "dates": "Du 14 novembre 2026 au 25 avril 2027", "age": "Dès 3 ans", "desc": "Un spectacle interactif et joyeux : chansons, danses, tours de magie et humour dans un décor peint à la main.", "avis": "Un peu de magie et d’amour !", "url": "https://tidd.ly/4gKZSBZ"}, {"t": "Blanche-Neige et les sept nains", "lieu": "Théâtre de la Gaîté-Montparnasse, 26 rue de la Gaîté, Paris 14e", "dates": "Du 3 octobre 2026 au 30 mai 2027", "age": "Dès 3 ans", "desc": "Le conte des frères Grimm en comédie musicale, avec hologrammes et projections lumineuses.", "avis": "Attention, il paraît que les cris de la sorcière en ont effrayé certains !", "url": "https://www.ticketac.com/spectacles/blanche-neige-et-les-7-nains-32171?utm_source=Facebook&utm_medium=social&utm_campaign=MUMinparis-blancheneige"}, {"t": "Winnie et le coffre aux merveilles", "lieu": "Théâtre des Nouveautés, 24 bd Poissonnière, Paris 9e", "dates": "Du 3 octobre 2026 au 3 janvier 2027", "age": "Tout-petits", "prix": "Dès 10 €", "desc": "Marionnettes grandeur nature et chorégraphies autour de Winnie et ses amis.", "avis": "Le spectacle musical des tout-petits ! Ça fait 3 ans, c’est la 8e fois qu’on vient… et je le recommande toujours autant !", "url": "https://tidd.ly/4i5Vtei"}];
+const e=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const short=u=>u.replace(/^https?:\/\/(www\.)?/,'').replace(/\?.*$/,'');
+document.getElementById('list').innerHTML=S.map((s,i)=>`<div class="show"><div class="n">${i+1}</div><div>
+<h2>${e(s.t)}${s.cdc?' <span class="cdc">Coup de cœur</span>':''}</h2>
+<p class="meta">${[s.dates,s.age,s.duree,s.prix].filter(Boolean).map(x=>`<span>${e(x)}</span>`).join('')}</p>
+<p class="meta">${e(s.lieu)}</p>
+<p class="avis"><b>♥ L’avis de Mum</b> ${e(s.avis)}</p>
+${s.bon?`<p class="bon"><b>Bon à savoir :</b> ${e(s.bon)}</p>`:''}
+<div class="links"><a class="btn" href="${e(s.url)}" target="_blank" rel="noopener">Réserver ↗</a></div></div></div>`).join('');
+if((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone){const d=document.querySelector('.dl');if(d)d.remove();}
+document.getElementById('back').addEventListener('click',ev=>{if(history.length>1&&document.referrer&&new URL(document.referrer).origin===location.origin){ev.preventDefault();history.back();}});
+</script></body></html>
